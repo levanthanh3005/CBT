@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{MinerName}}
+  labels:
+    purpose: {{MinerName}}
+spec:
+  containers:
+  - name: {{MinerName}}
+    image: levanthanh3005/iotmalware:v0
+    imagePullPolicy: Always
+    env:
+      - name: THREAD
+        value: "100"
+    resources:
+        requests:
+            memory: "64Mi"
+            cpu: "200m"
+        limits:
+            memory: "128Mi"
+            cpu: "300m"

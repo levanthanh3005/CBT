@@ -1,0 +1,86 @@
+#Master check
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-security-all
+  labels:
+    app.kubernetes.io/component: trust-system
+    app.kubernetes.io/name: trust-system-security
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: trust-system
+      app.kubernetes.io/name: trust-system-security
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trust-system
+        app.kubernetes.io/name: trust-system-security
+    spec:
+      hostPID: true
+      containers:
+        - name: kube-security
+          image: levanthanh3005/kubebench:v0
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 3333
+            protocol: TCP
+          resources:
+           limits:
+            cpu: 250m
+            memory: 180Mi
+           requests:
+            cpu: 102m
+            memory: 180Mi
+          volumeMounts:
+            - name: var-lib-etcd
+              mountPath: /var/lib/etcd
+              readOnly: true
+            - name: var-lib-kubelet
+              mountPath: /var/lib/kubelet
+              readOnly: true
+            - name: etc-systemd
+              mountPath: /etc/systemd
+              readOnly: true
+            - name: etc-kubernetes
+              mountPath: /etc/kubernetes
+              readOnly: true
+              # /usr/local/mount-from-host/bin is mounted to access kubectl / kubelet, for auto-detecting the Kubernetes version.
+              # You can omit this mount if you specify --version as part of the command.
+            - name: usr-bin
+              mountPath: /usr/local/mount-from-host/bin
+              readOnly: true
+      volumes:
+        - name: var-lib-etcd
+          hostPath:
+            path: "/var/lib/etcd"
+        - name: var-lib-kubelet
+          hostPath:
+            path: "/var/lib/kubelet"
+        - name: etc-systemd
+          hostPath:
+            path: "/etc/systemd"
+        - name: etc-kubernetes
+          hostPath:
+            path: "/etc/kubernetes"
+        - name: usr-bin
+          hostPath:
+            path: "/usr/bin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-security-all-ds-svc
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port:   '9100'
+spec:
+  type: NodePort
+  ports:
+  - port: 3333
+    targetPort: 3333 
+  selector:
+    app.kubernetes.io/component: trust-system
+    app.kubernetes.io/name: trust-system-security

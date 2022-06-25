@@ -1,0 +1,79 @@
+#Node check
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-interaction-worker
+  labels:
+      app.kubernetes.io/name: trust-system-interaction-worker
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: trust-system-interaction-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: trust-system-interaction-worker
+    spec:
+      hostNetwork: true
+      nodeSelector: 
+        node-role.kubernetes.io/worker: "worker"
+      containers:
+      - name: kube-interaction
+        image: levanthanh3005/ns3nodecontroller:kubev0
+        imagePullPolicy: Always
+        env:
+          - name: APP_FILE
+            value: "slave.js"
+        ports:
+          - containerPort: 3003
+            protocol: TCP
+---
+#Master check
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-interaction-master
+  labels:
+      app.kubernetes.io/name: trust-system-interaction-master
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/name: trust-system-interaction-master
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: trust-system-interaction-master
+    spec:
+      hostNetwork: true
+      nodeSelector: 
+        node-role.kubernetes.io/master: "master"
+      containers:
+      - name: kube-interaction
+        image: levanthanh3005/ns3nodecontroller:kubev0
+        imagePullPolicy: Always
+        env:
+          - name: REALIP
+            value: {{IPMASTER}}
+          - name: APP_FILE
+            value: "master.js"
+        ports:
+          - containerPort: 3003
+            protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-interaction-svc
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port:   '9100'
+spec:
+  type: NodePort
+  ports:
+  - port: 3005
+    targetPort: 3003
+  selector:
+    app.kubernetes.io/name: trust-system-interaction-master

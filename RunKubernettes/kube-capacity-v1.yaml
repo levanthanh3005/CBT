@@ -1,0 +1,73 @@
+#Master check
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-capacity-all
+  labels:
+      app.kubernetes.io/component: trust-system
+      app.kubernetes.io/name: trust-system-capacity
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/component: trust-system
+        app.kubernetes.io/name: trust-system-capacity
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trust-system
+        app.kubernetes.io/name: trust-system-capacity
+    spec:
+      hostNetwork: true
+      nodeSelector: 
+        node-role.kubernetes.io/master: "master" 
+      containers:
+        - name: kube-capacity
+          image: quay.io/aicoe/prometheus-anomaly-detector:latest
+          env:
+            - name: FLT_PROM_URL
+              value: "http://tan-km:9090"
+            - name: FLT_RETRAINING_INTERVAL_MINUTES
+              value: "5"
+            - name: FLT_METRICS_LIST
+              value: "kube_node_status_capacity"
+            - name: APP_FILE
+              value: "app.py"
+            - name: FLT_DATA_START_TIME
+              value: "1d"
+            - name: FLT_ROLLING_TRAINING_WINDOW_SIZE
+              value: "1d"
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+           limits:
+            cpu: 250m
+            memory: 180Mi
+           requests:
+            cpu: 102m
+            memory: 180Mi
+          volumeMounts:
+            - name: appcopy
+              mountPath: /app.py
+      volumes:
+        - name: appcopy
+          hostPath:
+            path: "/home/test/kube/AIOps/app.py"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-capacity-all-ds-svc
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port:   '9100'
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/component: trust-system
+    app.kubernetes.io/name: trust-system-capacity

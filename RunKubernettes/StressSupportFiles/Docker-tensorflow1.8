@@ -1,0 +1,23 @@
+FROM ubuntu:18.04
+RUN apt update
+RUN apt install software-properties-common -y
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt update
+#RUN apt install python3.6 -y
+RUN python3 --version
+
+RUN apt-get install -y git python3-pip
+RUN pip3 install -U setuptools
+RUN apt-get install -y wget
+RUN wget https://github.com/laurentS/tensorflow-wheels/raw/master/tensorflow-1.8.0-cp36-cp36m-linux_x86_64.whl
+RUN ls
+RUN pip3 install --ignore-installed --upgrade tensorflow-1.8.0-cp36-cp36m-linux_x86_64.whl
+RUN pip3 install jupyter
+RUN pip3 install numpy pandas matplotlib
+ENV PYTHONUNBUFFERED=1
+RUN rm tensorflow-1.8.0-cp36-cp36m-linux_x86_64.whl
+
+RUN python3 -c "import tensorflow as tf;"
+
+WORKDIR /todo
+CMD ["jupyter","notebook","--allow-root","--ip=0.0.0.0"]

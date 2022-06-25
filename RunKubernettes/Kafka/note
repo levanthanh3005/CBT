@@ -1,0 +1,20 @@
+Access docker container :
+docker run -it --rm  wurstmeister/kafka bash
+
+To Create topic
+
+Start Producer
+docker run --rm --interactive  wurstmeister/kafka /opt/kafka_2.13-2.7.1/bin/kafka-console-producer.sh --topic test --broker-list 10.152.183.62:9092
+
+To create consumer
+docker run --rm --interactive  wurstmeister/kafka /opt/kafka_2.13-2.7.1/bin/kafka-console-consumer.sh --topic grillo --from-beginning --bootstrap-server 10.152.183.209:2181
+
+#Export Ports
+microk8s kubectl port-forward -n default service/kafka-service --address 0.0.0.0 9092:9092
+
+
+#Producer
+docker run --rm --interactive  wurstmeister/kafka:2.13-2.7.1 /opt/kafka_2.13-2.7.1/bin/kafka-console-consumer.sh --topic Topic3 --from-beginning --bootstrap-server 10.10.21.113:9092
+
+#Consumer
+docker run --rm --interactive  wurstmeister/kafka:2.13-2.7.1 /opt/kafka_2.13-2.7.1/bin/kafka-console-producer.sh --topic Topic3 --broker-list 10.10.21.113:9092

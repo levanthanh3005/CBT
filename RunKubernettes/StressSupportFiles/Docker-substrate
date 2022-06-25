@@ -1,0 +1,33 @@
+FROM ubuntu:18.04
+
+RUN apt update
+RUN apt install -y cmake pkg-config libssl-dev git build-essential clang libclang-dev curl
+
+WORKDIR /todo
+RUN curl https://sh.rustup.rs -o rustup-init.sh
+RUN chmod +x *.sh
+RUN ./rustup-init.sh -y
+
+ENV PATH="$HOME/.cargo/bin:${PATH}"
+
+RUN echo $PATH
+
+
+RUN $HOME/.cargo/bin/rustup default stable
+RUN $HOME/.cargo/bin/rustup update nightly
+RUN $HOME/.cargo/bin/rustup update stable
+RUN $HOME/.cargo/bin/rustup target add wasm32-unknown-unknown --toolchain nightly
+
+RUN $HOME/.cargo/bin/cargo install canvas-node --git https://github.com/paritytech/canvas-node.git --tag v0.1.9 --force --locked
+
+RUN $HOME/.cargo/bin/cargo install cargo-contract --vers ^0.13 --force --locked
+
+RUN $HOME/.cargo/bin/rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+
+RUN curl -L -o binaryen.tar.gz https://github.com/WebAssembly/binaryen/releases/download/version_101/binaryen-version_101-x86_64-linux.tar.gz
+
+RUN tar -xf binaryen.tar.gz
+RUN chmod +x binaryen-version_101/bin/*
+RUN cp -r binaryen-version_101/bin/* $HOME/.cargo/bin/
+RUN rm -rf *
+RUN echo "DONE"

@@ -1,0 +1,59 @@
+#Master check
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-capacity-all
+  labels:
+      app.kubernetes.io/component: trust-system
+      app.kubernetes.io/name: trust-system-capacity
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+        app.kubernetes.io/component: trust-system
+        app.kubernetes.io/name: trust-system-capacity
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: trust-system
+        app.kubernetes.io/name: trust-system-capacity
+    spec:
+      hostNetwork: true
+      nodeSelector: 
+        node-role.kubernetes.io/master: "master" 
+      containers:
+        - name: kube-capacity
+          image: levanthanh3005/kubecbt:v0-compressed
+          imagePullPolicy: Always
+          env:
+            - name: H5URL
+              value: "https://github.com/levanthanh3005/CBT/blob/9d3b8ac8e92525039c948f144b4203e121328730/cbt.h5?raw=true"
+            - name: QUERYURL
+              value: "http://admin:admin@{{IPMASTER}}:3000/api/datasources/proxy/1/api/v1/query_range"
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources:
+           limits:
+            cpu: 250m
+            memory: 180Mi
+           requests:
+            cpu: 102m
+            memory: 180Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kube-capacity-all-ds-svc
+  namespace: monitoring
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port:   '9100'
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/component: trust-system
+    app.kubernetes.io/name: trust-system-capacity

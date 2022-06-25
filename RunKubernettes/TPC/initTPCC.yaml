@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tpcc-init
+spec:
+  template:
+    spec:
+      containers:
+      - name: tpcc-init
+        image: levanthanh3005/tpcc:v0.1
+        imagePullPolicy: Always
+        command: ["sh",  "-c", "run.sh -u root -ppass -h mysql-0.mysql -d tpcc init"]
+        resources:
+          limits:
+            cpu: 250m
+            memory: 180Mi
+          requests:
+            cpu: 102m
+            memory: 180Mi
+      restartPolicy: Never
+  backoffLimit: 4
