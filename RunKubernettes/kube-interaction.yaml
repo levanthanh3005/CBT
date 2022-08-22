@@ -25,6 +25,8 @@ spec:
         env:
           - name: APP_FILE
             value: "slave.js"
+          - name: KUBEIP
+            value: {{IPMASTER}}
         ports:
           - containerPort: 3003
             protocol: TCP
