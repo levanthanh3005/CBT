@@ -58,6 +58,8 @@ spec:
         env:
           - name: REALIP
             value: {{IPMASTER}}
+          - name: KUBEIP
+            value: {{IPMASTER}}
           - name: APP_FILE
             value: "master.js"
         ports:
